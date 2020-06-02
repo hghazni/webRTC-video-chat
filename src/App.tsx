@@ -51,8 +51,11 @@ function App() {
       setUsers(users);
     })
 
+    // Being called logic
     socket.current.on("hey", (data:any) => {
-
+      setRecevingCall(true);
+      setCaller(data.from);
+      setCallerSignal(data.signal);
     })
   }, []);
 
@@ -80,7 +83,22 @@ function App() {
   }
 
   function acceptCall() {
+    setCallAccepted(true);
 
+    const peer = new Peer({
+      initiator: false,
+      trickle: false,
+      stream: stream,
+    });
+    peer.on("signal", (data:any) => {
+      socket.current.emit("acceptCall", { signal: data, to: caller })
+    });
+
+    peer.on("stream", (stream:any) => {
+      partnerVideo.current.srcObject = stream;
+    });
+
+    peer.signal(callerSignal.toString());
   }
 
   let UserVideo;
