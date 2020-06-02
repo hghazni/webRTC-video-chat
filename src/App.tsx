@@ -57,7 +57,26 @@ function App() {
   }, []);
 
   function callPeer(id: any) {
+    const peer:any = new Peer({
+      initiator: true,
+      trickle: false,
+      stream: stream
+    });
 
+    peer.on("signal", (data:any) => {
+      socket.current.emit("callUser", {userToCall: id, signalData: data, from: yourID})
+    });
+
+    peer.on("stream", (stream:any) => {
+      if (partnerVideo.current) {
+        partnerVideo.current.srcObject = stream;
+      }
+    });
+
+    socket.current.on("callAccepted", (signal:any) => {
+      setCallAccepted(true);
+      peer.signal(signal);
+    })
   }
 
   function acceptCall() {
